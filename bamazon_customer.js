@@ -5,6 +5,7 @@ require("dotenv").config();
 require("./keys");
 
 const dbPassword = process.env.DB_PASSWORD;
+const numRegex = /^[0-9]$/g; //regular expression to accept only number input
 let sql;
 
 
@@ -21,6 +22,7 @@ function createTable(headers) {
 function buyPromptID(data) {
     //make array of valid item id's to validate against user input
     let validIDs = data.map(item=>{return item.item_id});
+    console.log(validIDs);
     inquirer.prompt([
         {
             message: 'Enter the product ID you wish to purchase:',
@@ -28,19 +30,39 @@ function buyPromptID(data) {
         }
     ]).then(function (res) {
         let userChoice = res.itemID;
-        idRegex = /^[0-9]$/g; //regular expression to accept only number input
-        if(idRegex.test(userChoice) && validIDs.indexOf(userChoice)){
+        //check if user input passes number regex and if it is in list of valid IDs
+        if(numRegex.test(userChoice) && validIDs.indexOf(userChoice)){
             console.log(`valid id`);
+            buyPromptQty(userChoice,data);
         }
         else{
             console.log(`Please enter a valid ID`);
             buyPromptID(data);
         }
-    })
+    });
 }
 
-function buyPromptQty() {
-
+function buyPromptQty(itemID,data) {
+    console.log(`buy prompt id:${itemID}`);
+    console.log(data[itemID-1]);
+    const itemQty = Number(data[itemID-1].stock_quantity);
+    console.log(`We have ${itemQty} left`); 
+    inquirer.prompt([
+        {
+            message:'Enter the quantity for your order:',
+            name: 'orderQty'
+        }
+    ]).then(function(res){
+        let userChoice = Number(res.orderQty);
+        console.log(`userchoice: ${userChoice}`);
+        if(numRegex.test(userChoice) && itemQty >= userChoice){
+            console.log(`we have enough to cover the order`);
+        }
+        else{
+            console.log(`Enter a valid quantity number`);
+            buyPromptQty(itemID,data);
+        }
+    });
 }
 
 //create connection to database using .env for secure connect
