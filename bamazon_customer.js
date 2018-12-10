@@ -5,7 +5,7 @@ require("dotenv").config();
 require("./keys");
 
 const dbPassword = process.env.DB_PASSWORD;
-const numRegex = /^[0-9]$/g; //regular expression to accept only number input
+const numRegex = /^[0-9]+$/g; //regular expression to accept only number input
 let sql;
 
 
@@ -30,8 +30,9 @@ function buyPromptID(data) {
         }
     ]).then(function (res) {
         let userChoice = res.itemID;
+        // console.log(validIDs.indexOf(Number(userChoice)));
         //check if user input passes number regex and if it is in list of valid IDs
-        if(numRegex.test(userChoice) && validIDs.indexOf(userChoice)){
+        if(numRegex.test(userChoice) && validIDs.indexOf(Number(userChoice)) >-1){
             console.log(`valid id`);
             buyPromptQty(userChoice,data);
         }
@@ -43,9 +44,14 @@ function buyPromptID(data) {
 }
 
 function buyPromptQty(itemID,data) {
+    console.log(typeof itemID);
+    itemID = Number(itemID);
+    console.log(typeof itemID);
     console.log(`buy prompt id:${itemID}`);
+    console.log(`selected item details:`);
     console.log(data[itemID-1]);
     const itemQty = Number(data[itemID-1].stock_quantity);
+    
     console.log(`We have ${itemQty} left`); 
     inquirer.prompt([
         {
@@ -53,9 +59,12 @@ function buyPromptQty(itemID,data) {
             name: 'orderQty'
         }
     ]).then(function(res){
-        let userChoice = Number(res.orderQty);
-        console.log(`userchoice: ${userChoice}`);
-        if(numRegex.test(userChoice) && itemQty >= userChoice){
+        let userChoice = res.orderQty;
+        // console.log(`userchoice: ${userChoice}`);
+        // console.log(typeof userChoice);
+        console.log(`test1: ${numRegex.test(userChoice)}`);
+        // console.log(`test2: ${itemQty >= Number(userChoice)}`);
+        if(numRegex.test(userChoice) && itemQty >= Number(userChoice)){
             console.log(`we have enough to cover the order`);
         }
         else{
@@ -66,11 +75,23 @@ function buyPromptQty(itemID,data) {
 }
 
 //create connection to database using .env for secure connect
+/*
+for working in cloud9:
+    user: "mblydenburgh"
+    password: ""
+    database: "c9"
+    
+for working on macbook locally:
+    user:"root"
+    password: dpPassword,
+    database:"bamazon_db"
+*/
+
 mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: dbPassword,
-    database: 'bamazon_db'
+    host: '127.0.0.1',
+    user: 'mblydenburgh',
+    password: "",
+    database: 'c9'
 })
     //once connected, query to select all data for displaying to product table
     .then(function (connection) {
@@ -83,10 +104,10 @@ mysql.createConnection({
         const headers = Object.keys(data[0]);
         const table = createTable(headers);
         data.forEach(row => {
-            let { item_id: id, product_name: name, department_name: department, price, stock_quantity: qty } = row
+            let { item_id: id, product_name: name, department_name: department, price, stock_quantity: qty } = row;
             // console.log(`*****PUSHING ROW*****`)
             // console.log(id, name, department, price, qty);
-            table.push([id, name, department, `$${price}`, qty])
+            table.push([id, name, department, `$${price}`, qty]);
         });
         //display table of products and prompt user to select which item
         console.log(table.toString());
