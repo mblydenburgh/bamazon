@@ -61,6 +61,7 @@ function buyPromptQty(itemID,data) {
 
         if(numRegex.test(userChoice) && itemQty >= Number(userChoice)){
             console.log(`we have enough to cover the order`);
+            placeOrder(itemID,Number(userChoice));
         }
         else{
             console.log(`Enter a valid quantity number`);
@@ -70,19 +71,29 @@ function buyPromptQty(itemID,data) {
 }
 
 
+function placeOrder(itemID,orderQty){
+    console.log(`placing order for itemID:${itemID}, qty:${orderQty}`);
+    dbConnection.query(`UPDATE products SET stock_quantity = stock_quantity - ? WHERE item_id = ?`,[orderQty,itemID])
+    .then(function(err,res){
+        if(err) throw err;
+        console.log(res);
+        dbConnection.end();
+    });
+}
+
 /*
 for working in cloud9:
     user: "mblydenburgh"
     password: ""
-    database: "c9"
     
 for working on macbook locally:
     user:"root"
     password: dpPassword,
     database:"bamazon_db"
 */
+
 //create connection to database using .env for secure connect
-mysql.createConnection({
+const dbConnection = mysql.createConnection({
     host: '127.0.0.1',
     user: 'mblydenburgh',
     password: "",
@@ -92,7 +103,7 @@ mysql.createConnection({
     .then(function (connection) {
         sql = `SELECT * FROM products`;
         let data = connection.query(sql);
-        connection.end();
+        // connection.end();
         return data;
     })
     .then(function (data) {
