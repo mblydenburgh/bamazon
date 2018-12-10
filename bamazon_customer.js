@@ -5,7 +5,7 @@ require("dotenv").config();
 require("./keys");
 
 const dbPassword = process.env.DB_PASSWORD;
-const numRegex = /^[0-9]+$/g; //regular expression to accept only number input
+const numRegex = /^[0-9]+$/; //regular expression to accept only number input
 let sql;
 
 
@@ -44,9 +44,7 @@ function buyPromptID(data) {
 }
 
 function buyPromptQty(itemID,data) {
-    console.log(typeof itemID);
     itemID = Number(itemID);
-    console.log(typeof itemID);
     console.log(`buy prompt id:${itemID}`);
     console.log(`selected item details:`);
     console.log(data[itemID-1]);
@@ -60,10 +58,7 @@ function buyPromptQty(itemID,data) {
         }
     ]).then(function(res){
         let userChoice = res.orderQty;
-        // console.log(`userchoice: ${userChoice}`);
-        // console.log(typeof userChoice);
-        console.log(`test1: ${numRegex.test(userChoice)}`);
-        // console.log(`test2: ${itemQty >= Number(userChoice)}`);
+
         if(numRegex.test(userChoice) && itemQty >= Number(userChoice)){
             console.log(`we have enough to cover the order`);
         }
@@ -74,7 +69,7 @@ function buyPromptQty(itemID,data) {
     });
 }
 
-//create connection to database using .env for secure connect
+
 /*
 for working in cloud9:
     user: "mblydenburgh"
@@ -86,7 +81,7 @@ for working on macbook locally:
     password: dpPassword,
     database:"bamazon_db"
 */
-
+//create connection to database using .env for secure connect
 mysql.createConnection({
     host: '127.0.0.1',
     user: 'mblydenburgh',
