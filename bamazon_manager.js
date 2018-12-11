@@ -8,6 +8,7 @@ const dbPassword = process.env.DB_PASSWORD;
 const numRegex = /^[0-9]+$/; //regular expression to accept only number input
 let sql;
 let data;
+let table;
 
 function createTable(headers) {
     //try to take passed in headers to dynamically update names from running initial .sql file
@@ -21,7 +22,7 @@ function createTable(headers) {
 
 function managerOptionPrompt() {
     return new Promise((resolve, reject) => {
-        let managerOptions = ['View Products', 'View Low Inventory', 'Add Inventory', 'Add Product','Quit'];
+        let managerOptions = ['View Products', 'View Low Inventory', 'Add Inventory', 'Add Product', 'Quit'];
         inquirer.prompt([
             {
                 type: 'list',
@@ -54,20 +55,28 @@ function connectToDB() {
                 case 'View Products':
                     sql = `SELECT * FROM products`;
                     data = await connection.query(sql);
-                    const table = createTable();
+                    table = createTable();
                     data.forEach(row => {
                         let { item_id: id, product_name: name, department_name: department, price, stock_quantity: qty } = row;
                         table.push([id, name, department, `$${price}`, qty]);
                     });
                     console.log(table.toString());
                     break;
-                case 'View Low inventory':
+                case 'View Low Inventory':
                     sql = `SELECT * FROM products WHERE stock_quantity < 5`;
-                    return connection.query(sql);
+                    data = await connection.query(sql);
+                    table = createTable();
+                    data.forEach(row => {
+                        let { item_id: id, product_name: name, department_name: department, price, stock_quantity: qty } = row;
+                        table.push([id, name, department, `$${price}`, qty]);
+                    });
+                    console.log(table.toString());
+                    break;
                 case 'Add Inventory':
                     data = connection.query(`SELECT * FROM products`);
                     let itemID = await promptID(data);
-                    let itemQty = await promptQty(itemID, data)
+                    let itemQty = await promptQty(itemID, data);
+                    break;
                 case 'Add Product':
                     break;
                 case 'Quit':
