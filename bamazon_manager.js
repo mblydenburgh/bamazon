@@ -6,6 +6,8 @@ require("./keys");
 
 const dbPassword = process.env.DB_PASSWORD;
 const numRegex = /^[0-9]+$/; //regular expression to accept only number input
+const nameRegex = /^[\w\s\d()]+$/; //regular expression to accept alphanumeric and parentheses for product names
+const priceRegex = /^[\d]{0,4}[.]\d{2}$/ //regular expression to accept only money format XXXX.XX
 let sql;
 let data;
 let table;
@@ -62,27 +64,88 @@ function promptID(data) {
     });
 }
 
-function promptQty(itemID, data) {
+function promptQty() {
     return new Promise((resolve, reject) => {
-        itemID = Number(itemID);
         inquirer.prompt([
             {
-                message: 'Enter the quantity for your order:',
-                name: 'orderQty'
+                message: 'Enter the initial inventory stock:',
+                name: 'itemQty'
             }
         ]).then(function (res) {
-            let userChoice = res.orderQty;
+            let itemQty = res.itemQty;
 
-            //check if user input passes numRegex, and if enough items are in stock for order
-            if (numRegex.test(userChoice)) {
-                console.log(`Adding ${userChoice} to inventory`);
-                resolve(Number(userChoice));
+            //check if input passes numRegex
+            if (numRegex.test(itemQty)) {
+                resolve(Number(itemQty));
             }
             else {
                 console.log(`Please enter a valid number`);
-                buyPromptQty(itemID, data);
+                promptQty();
             }
         });
+    });
+}
+
+function promptName(){
+    return new Promise((resolve,reject)=>{
+        inquirer.prompt([
+            {
+                message:'Enter a product name',
+                name:'itemName'
+            }
+        ])
+        .then(function(res){
+            let itemName = res.itemName;
+            if(nameRegex.test(itemName)){
+                resolve(itemName);
+            }
+            else{
+                console.log(`Please enter a valid product name`);
+                promptName();
+            }
+        });
+    });
+}
+
+function promptDepartment(){
+    return new Promise((resolve,reject)=>{
+        inquirer.prompt([
+            {
+                message:'Enter a department name',
+                name:'departmentName'
+            }
+        ])
+        .then(function(res){
+            let departmentName = res.departmentName;
+            if(nameRegex.test(departmentName)){
+                resolve(departmentName);
+            }
+            else{
+                console.log(`Please enter a valid department name`);
+                promptDepartment();
+            }
+        });
+    });
+}
+
+function promptPrice(){
+    return new Promise((resolve,reject)=>{
+        inquirer.prompt([
+            {
+                message:'Enter the selling price, up to 9999.99 (without $)',
+                name:'itemPrice'
+            }
+        ])
+        .then(function(res){
+            let itemPrice = res.itemPrice;
+            if(priceRegex.test(itemPrice)){
+                resolve(Number(itemPrice))
+            }
+            else{
+                console.log(`Enter a valid price`);
+                promptPrice();
+            }
+        })
     });
 }
 
@@ -128,6 +191,13 @@ function connectToDB() {
                     console.log(`Adding ${itemQty} units to id:${itemID}`);
                     break;
                 case 'Add Product':
+                    let itemName = await promptName();
+                    let departmentName = await promptDepartment();
+                    let price = await promptPrice();
+                    let quantity = await promptQty();
+                    console.log(`Adding ${quantity} ${itemName} to the ${departmentName} department for $${price}`);
+                    connection.query(`INSERT INTO products (product_name,department_name,price,stock_quantity)
+                                      VALUES (?,?,?,?)`,[itemName,departmentName,price,quantity]);
                     break;
                 case 'Quit':
                     console.log(`Buhh bye now! Come back soon, ya hear?`);
