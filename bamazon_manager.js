@@ -38,6 +38,54 @@ function managerOptionPrompt() {
     });
 }
 
+function promptID(data) {
+    return new Promise((resolve, reject) => {
+        //make array of valid item id's to validate against user input
+        let validIDs = data.map(item => { return item.item_id });
+        console.log(validIDs);
+        inquirer.prompt([
+            {
+                message: 'Enter the product ID you wish to add to:',
+                name: 'itemID'
+            }
+        ]).then(function (res) {
+            let userChoice = res.itemID;
+            //check if user input passes number regex and if it is in list of valid IDs
+            if (numRegex.test(userChoice) && validIDs.indexOf(Number(userChoice)) > -1) {
+                resolve(Number(userChoice));
+            }
+            else {
+                console.log(`Please enter a valid ID`);
+                buyPromptID(data);
+            }
+        });
+    });
+}
+
+function promptQty(itemID, data) {
+    return new Promise((resolve, reject) => {
+        itemID = Number(itemID);
+        inquirer.prompt([
+            {
+                message: 'Enter the quantity for your order:',
+                name: 'orderQty'
+            }
+        ]).then(function (res) {
+            let userChoice = res.orderQty;
+
+            //check if user input passes numRegex, and if enough items are in stock for order
+            if (numRegex.test(userChoice)) {
+                console.log(`Adding ${userChoice} to inventory`);
+                resolve(Number(userChoice));
+            }
+            else {
+                console.log(`Please enter a valid number`);
+                buyPromptQty(itemID, data);
+            }
+        });
+    });
+}
+
 function connectToDB() {
     mysql.createConnection({
         host: 'localhost',
@@ -73,9 +121,11 @@ function connectToDB() {
                     console.log(table.toString());
                     break;
                 case 'Add Inventory':
-                    data = connection.query(`SELECT * FROM products`);
+                    data = await connection.query(`SELECT * FROM products`);
                     let itemID = await promptID(data);
                     let itemQty = await promptQty(itemID, data);
+                    connection.query(`UPDATE products SET stock_quantity = stock_quantity + ? WHERE item_id = ?`, [itemQty, itemID]);
+                    console.log(`Adding ${itemQty} units to id:${itemID}`);
                     break;
                 case 'Add Product':
                     break;
