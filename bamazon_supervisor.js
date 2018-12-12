@@ -12,9 +12,7 @@ let sql;
 let data;
 let table;
 
-function createTable(headers) {
-    //try to take passed in headers to dynamically update names from running initial .sql file
-    //and beautifying the header names automatically
+function createTable() {
     let table = new Table({
         head: ["Dept ID", "Dept Name", "Overhead", "Product Sales","Total Profit"],
         colWidths: [15, 20, 15, 15, 15]
@@ -40,6 +38,48 @@ function supervisorOptionPrompt() {
     });
 }
 
+function promptDepartmentName(){
+    return new Promise((resolve,reject)=>{
+       inquirer.prompt([
+               {
+                   message:'Enter a department name',
+                   name:'deptName'
+               }
+           ])
+           .then(function(res){
+              let name = res.deptName;
+              if(nameRegex.test(name)){
+                  resolve(name);
+              }
+              else{
+                  console.log(`Please enter a valid name`);
+                  promptDepartmentName();
+              }
+           });
+    });
+}
+
+function promptOverhead(){
+    return new Promise((resolve,reject)=>{
+       inquirer.prompt([
+               {
+                   message:'Enter overhead costs (XXXX.XX format)',
+                   name:'overhead'
+               }
+           ])
+           .then(function(res){
+              let costs = res.overhead;
+              if(priceRegex.test(costs)){
+                  resolve(Number(costs));
+              }
+              else{
+                  console.log(`Please enter a valid name`);
+                  promptDepartmentName();
+              }
+           });
+    });
+}
+
 function connectToDB() {
     mysql.createConnection({
         host: '127.0.0.1',
@@ -62,7 +102,6 @@ function connectToDB() {
                     data = await connection.query(sql);
                     table = createTable();
                     data.forEach(row => {
-                        console.log(row);
                         let { department_id: id, department_name: name, overhead_costs: overhead, ['SUM(products.product_sales)']: sales} = row;
                         let profit = sales - overhead;
                         table.push([id, name, `$${overhead}`, `$${sales}`,`$${profit}`]);
@@ -70,7 +109,12 @@ function connectToDB() {
                     console.log(table.toString());
                     break;
                 case 'Create New Department':
-                    sql = ``;
+                    let name = await promptDepartmentName();
+                    let overhead = await promptOverhead();
+                    console.log(name,overhead);
+                    console.log(typeof name, typeof overhead);
+                    sql = `INSERT INTO departments (department_name,overhead_costs) VALUES (?,?)`;
+                    connection.query(sql,[name,overhead]);
                     break;
                 case 'Quit':
                     console.log(`Buhh bye now! Come back soon, ya hear?`);
