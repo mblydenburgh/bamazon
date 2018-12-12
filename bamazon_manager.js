@@ -151,10 +151,10 @@ function promptPrice(){
 
 function connectToDB() {
     mysql.createConnection({
-        host: 'localhost',
-        user: 'root',
-        password: dbPassword,
-        database: 'bamazon_db'
+        host: '127.0.0.1',
+        user: 'mblydenburgh',
+        password: '',
+        database: 'c9'
     })
         .then(async function (connection) {
             //prompt for manager option in order to determine what DB query to run
@@ -168,8 +168,8 @@ function connectToDB() {
                     data = await connection.query(sql);
                     table = createTable();
                     data.forEach(row => {
-                        let { item_id: id, product_name: name, department_name: department, price, stock_quantity: qty } = row;
-                        table.push([id, name, department, `$${price}`, qty]);
+                        let { item_id: id, product_name: name, department_name: department, price, stock_quantity: qty, product_sales: sales } = row;
+                        table.push([id, name, department, `$${price}`, qty,sales]);
                     });
                     console.log(table.toString());
                     break;

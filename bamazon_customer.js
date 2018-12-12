@@ -83,6 +83,7 @@ function calculateOrderTotal(itemID, itemQty,data) {
     for working in cloud9:
         user: "mblydenburgh"
         password: ""
+        database: "c9"
     
     for working on macbook locally:
         user:"root"
@@ -94,9 +95,9 @@ function connectToDB() {
     //create connection to database using .env for secure connect
     mysql.createConnection({
         host: '127.0.0.1',
-        user: 'root',
-        password: dbPassword,
-        database: 'bamazon_db'
+        user: 'mblydenburgh',
+        password: "",
+        database: 'c9'
     })
         //once connected, query to select all data for displaying to product table
         .then(async function (connection) {
@@ -107,9 +108,7 @@ function connectToDB() {
             const table = createTable(headers);
             data.forEach(row => {
                 let { item_id: id, product_name: name, department_name: department, price, stock_quantity: qty, product_sales: sales } = row;
-                if(!sales){
-                    sales = 0
-                }
+
                 table.push([id, name, department, `$${price}`, qty, sales]);
             });
             //display table of products and prompt user to select which item
