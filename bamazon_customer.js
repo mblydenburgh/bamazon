@@ -12,8 +12,8 @@ function createTable(headers) {
     //try to take passed in headers to dynamically update names from running initial .sql file
     //and beautifying the header names automatically
     let table = new Table({
-        head: ["Item ID", "Name", "Department", "Price", "Quantity"],
-        colWidths: [10, 45, 15, 10, 10]
+        head: ["Item ID", "Name", "Department", "Price", "Quantity","Product Sales"],
+        colWidths: [10, 45, 15, 10, 10,15]
     });
     return table;
 }
@@ -47,9 +47,6 @@ function buyPromptID(data) {
 function buyPromptQty(itemID, data) {
     return new Promise((resolve, reject) => {
         itemID = Number(itemID);
-        // console.log(`buy prompt id:${itemID}`);
-        // console.log(`selected item details:`);
-        // console.log(data[itemID - 1]);
         const itemQty = Number(data[itemID - 1].stock_quantity);
 
         console.log(`We have ${itemQty} left`);
@@ -109,8 +106,11 @@ function connectToDB() {
             const headers = Object.keys(data[0]);
             const table = createTable(headers);
             data.forEach(row => {
-                let { item_id: id, product_name: name, department_name: department, price, stock_quantity: qty } = row;
-                table.push([id, name, department, `$${price}`, qty]);
+                let { item_id: id, product_name: name, department_name: department, price, stock_quantity: qty, product_sales: sales } = row;
+                if(!sales){
+                    sales = 0
+                }
+                table.push([id, name, department, `$${price}`, qty, sales]);
             });
             //display table of products and prompt user to select which item
             console.log(table.toString());
@@ -121,6 +121,7 @@ function connectToDB() {
             let orderPrice = calculateOrderTotal(itemID, itemQty,data);
             console.log(`Order Total: ${orderPrice}`);
             
+            connection.query(`UPDATE products SET product_sales = product_sales + ? WHERE item_id = ?`,[orderPrice,itemID]);
             return connection.query(`UPDATE products SET stock_quantity = stock_quantity - ? WHERE item_id = ?`, [itemQty, itemID]);
         })
         .then(async function (data) {

@@ -16,8 +16,8 @@ function createTable(headers) {
     //try to take passed in headers to dynamically update names from running initial .sql file
     //and beautifying the header names automatically
     let table = new Table({
-        head: ["Item ID", "Name", "Department", "Price", "Quantity"],
-        colWidths: [10, 45, 15, 10, 10]
+        head: ["Item ID", "Name", "Department", "Price", "Quantity","Product Sales"],
+        colWidths: [10, 45, 15, 10, 10,15]
     });
     return table;
 }
@@ -196,7 +196,7 @@ function connectToDB() {
                     let price = await promptPrice();
                     let quantity = await promptQty();
                     console.log(`Adding ${quantity} ${itemName} to the ${departmentName} department for $${price}`);
-                    connection.query(`INSERT INTO products (product_name,department_name,price,stock_quantity)
+                    connection.query(`INSERT INTO products (product_name,department_name,price,stock_quantity,product_sales)
                                       VALUES (?,?,?,?)`,[itemName,departmentName,price,quantity]);
                     break;
                 case 'Quit':
