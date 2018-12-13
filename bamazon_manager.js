@@ -107,7 +107,7 @@ function promptName(){
     });
 }
 
-function promptDepartment(){
+function promptDepartment(validDepartments){
     return new Promise((resolve,reject)=>{
         inquirer.prompt([
             {
@@ -117,12 +117,12 @@ function promptDepartment(){
         ])
         .then(function(res){
             let departmentName = res.departmentName;
-            if(nameRegex.test(departmentName)){
+            if(nameRegex.test(departmentName) && validDepartments.indexOf(departmentName) > -1){
                 resolve(departmentName);
             }
             else{
-                console.log(`Please enter a valid department name`);
-                promptDepartment();
+                console.log(`Please enter a valid department name with only alphanumeric characters and parentheses, and check with a supervisor to ensure the department exists!`);
+                promptDepartment(validDepartments);
             }
         });
     });
@@ -152,9 +152,9 @@ function promptPrice(){
 function connectToDB() {
     mysql.createConnection({
         host: '127.0.0.1',
-        user: 'mblydenburgh',
-        password: '',
-        database: 'c9'
+        user: 'root',
+        password: dbPassword,
+        database: 'bamazon_db'
     })
         .then(async function (connection) {
             //prompt for manager option in order to determine what DB query to run
@@ -191,13 +191,14 @@ function connectToDB() {
                     console.log(`Adding ${itemQty} units to id:${itemID}`);
                     break;
                 case 'Add Product':
+                    let validDepartments = await connection.query(`SELECT department_name FROM products`);
                     let itemName = await promptName();
-                    let departmentName = await promptDepartment();
+                    let departmentName = await promptDepartment(validDepartments);
                     let price = await promptPrice();
                     let quantity = await promptQty();
                     console.log(`Adding ${quantity} ${itemName} to the ${departmentName} department for $${price}`);
                     connection.query(`INSERT INTO products (product_name,department_name,price,stock_quantity,product_sales)
-                                      VALUES (?,?,?,?)`,[itemName,departmentName,price,quantity]);
+                                      VALUES (?,?,?,?,?)`,[itemName,departmentName,price,quantity,0]);
                     break;
                 case 'Quit':
                     console.log(`Buhh bye now! Come back soon, ya hear?`);

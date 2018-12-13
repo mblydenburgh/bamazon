@@ -73,7 +73,7 @@ function promptOverhead(){
                   resolve(Number(costs));
               }
               else{
-                  console.log(`Please enter a valid name`);
+                  console.log(`Please enter a valid number`);
                   promptDepartmentName();
               }
            });
@@ -83,9 +83,9 @@ function promptOverhead(){
 function connectToDB() {
     mysql.createConnection({
         host: '127.0.0.1',
-        user: 'mblydenburgh',
-        password: '',
-        database: 'c9'
+        user: 'root',
+        password: dbPassword,
+        database: 'bamazon_db'
     })
         .then(async function (connection) {
             //prompt for manager option in order to determine what DB query to run
@@ -97,8 +97,8 @@ function connectToDB() {
                 case 'View Product Sales By Department':
                     sql = `SELECT departments.department_id,departments.department_name,departments.overhead_costs, SUM(products.product_sales)
                            FROM departments
-                           INNER JOIN products WHERE departments.department_name = products.department_name
-                           GROUP BY departments.department_name;`;
+                           LEFT OUTER JOIN products ON departments.department_name = products.department_name
+                           GROUP BY departments.department_name,departments.department_id;`;
                     data = await connection.query(sql);
                     table = createTable();
                     data.forEach(row => {
@@ -111,11 +111,8 @@ function connectToDB() {
                 case 'Create New Department':
                     let name = await promptDepartmentName();
                     let overhead = await promptOverhead();
-                    console.log(name,overhead);
-                    console.log(typeof name, typeof overhead);
                     sql = `INSERT INTO departments (department_name,overhead_costs) VALUES (?,?)`;
-                    connection.query(sql,[name,overhead]);
-                    break;
+                    return connection.query(sql,[name,overhead]);
                 case 'Quit':
                     console.log(`Buhh bye now! Come back soon, ya hear?`);
                     process.exit();

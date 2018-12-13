@@ -95,9 +95,9 @@ function connectToDB() {
     //create connection to database using .env for secure connect
     mysql.createConnection({
         host: '127.0.0.1',
-        user: 'mblydenburgh',
-        password: "",
-        database: 'c9'
+        user: 'root',
+        password: dbPassword,
+        database: 'bamazon_db'
     })
         //once connected, query to select all data for displaying to product table
         .then(async function (connection) {
