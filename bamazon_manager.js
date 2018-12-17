@@ -117,7 +117,9 @@ function promptDepartment(validDepartments){
         ])
         .then(function(res){
             let departmentName = res.departmentName;
-            if(nameRegex.test(departmentName) && validDepartments.indexOf(departmentName) > -1){
+            let departmentArray = validDepartments.map(item=>item.department_name);
+            // console.log(departmentArray);
+            if(nameRegex.test(departmentName) && departmentArray.indexOf(departmentName) > -1){
                 resolve(departmentName);
             }
             else{
@@ -152,9 +154,9 @@ function promptPrice(){
 function connectToDB() {
     mysql.createConnection({
         host: '127.0.0.1',
-        user: 'root',
-        password: dbPassword,
-        database: 'bamazon_db'
+        user: 'mblydenburgh',
+        password: '',
+        database: 'c9'
     })
         .then(async function (connection) {
             //prompt for manager option in order to determine what DB query to run
@@ -191,7 +193,7 @@ function connectToDB() {
                     console.log(`Adding ${itemQty} units to id:${itemID}`);
                     break;
                 case 'Add Product':
-                    let validDepartments = await connection.query(`SELECT department_name FROM products`);
+                    let validDepartments = await connection.query(`SELECT department_name FROM products GROUP BY department_name`);
                     let itemName = await promptName();
                     let departmentName = await promptDepartment(validDepartments);
                     let price = await promptPrice();
