@@ -154,9 +154,9 @@ function promptPrice(){
 function connectToDB() {
     mysql.createConnection({
         host: '127.0.0.1',
-        user: 'mblydenburgh',
-        password: '',
-        database: 'c9'
+        user: 'root',
+        password: dbPassword,
+        database: 'bamazon_db'
     })
         .then(async function (connection) {
             //prompt for manager option in order to determine what DB query to run
